@@ -313,12 +313,8 @@
     loadAll();
   }
 
-  function init() {
-    if (SCRIPT_URL) {
-      document.getElementById('script-url').value = SCRIPT_URL;
-      document.getElementById('url-set-msg').style.display = 'block';
-      loadAll();
-    }
+ function init() {
+    loadAll();
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('book-date').value = today;
   }
