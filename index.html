@@ -369,25 +369,26 @@
     </div>`).join('');
   }
 
-  async function submitBorrow() {
-    const item = document.getElementById('borrow-item').value;
-    const qty = parseInt(document.getElementById('borrow-qty').value);
-    const name = document.getElementById('borrow-name').value.trim();
-    const contact = document.getElementById('borrow-contact').value.trim();
-    if (!item || !name || !qty || !contact) { showToast('Please fill in all required fields'); return; }
-    const opt = document.querySelector(`#borrow-item option[value="${item}"]`);
-    const max = parseInt(opt?.dataset.max || 999);
-    if (qty > max) { showToast(`Only ${max} available`); return; }
-    try {
-      await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'borrowItem', itemName: item, quantity: qty, borrowerName: name, contactNumber: contact }) });
-      showToast('Borrow recorded successfully!');
-      document.getElementById('borrow-name').value = '';
-      document.getElementById('borrow-contact').value = '';
-      document.getElementById('borrow-qty').value = '1';
-      document.getElementById('borrow-item').value = '';
-      loadAll();
-    } catch(e) { showToast('Error recording borrow'); }
-  }
+async function submitBorrow() {
+  const item = document.getElementById('borrow-item').value;
+  const qty = parseInt(document.getElementById('borrow-qty').value);
+  const name = document.getElementById('borrow-name').value.trim();
+  const contact = document.getElementById('borrow-contact').value.trim();
+  if (!item || !name || !qty || !contact) { showToast('Please fill in all required fields'); return; }
+  const opt = document.querySelector(`#borrow-item option[value="${item}"]`);
+  const max = parseInt(opt?.dataset.max || 0);
+  if (max <= 0) { showToast('This item is no longer available'); return; }
+  if (qty > max) { showToast(`Only ${max} available`); return; }
+  try {
+    await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'borrowItem', itemName: item, quantity: qty, borrowerName: name, contactNumber: contact }) });
+    showToast('Borrow recorded successfully!');
+    document.getElementById('borrow-name').value = '';
+    document.getElementById('borrow-contact').value = '';
+    document.getElementById('borrow-qty').value = '1';
+    document.getElementById('borrow-item').value = '';
+    loadAll();
+  } catch(e) { showToast('Error recording borrow'); }
+}
 
   async function submitReturn() {
     const record = document.getElementById('return-borrow').value;
