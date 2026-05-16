@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>YAM Sports Equipment</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg-primary: #ffffff;
+      --bg-secondary: #f5f5f3;
+      --bg-tertiary: #eeecea;
+      --text-primary: #1a1a18;
+      --text-secondary: #6b6b67;
+      --text-tertiary: #9a9a96;
+      --border-light: rgba(0,0,0,0.12);
+      --border-mid: rgba(0,0,0,0.2);
+      --blue: #185FA5;
+      --blue-light: #E6F1FB;
+      --blue-dark: #0C447C;
+      --green-bg: #EAF3DE;
+      --green-text: #3B6D11;
+      --amber-bg: #FAEEDA;
+      --amber-text: #854F0B;
+      --red-bg: #FCEBEB;
+      --red-text: #A32D2D;
+      --radius-md: 8px;
+      --radius-lg: 12px;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg-primary: #1e1e1c;
+        --bg-secondary: #2a2a28;
+        --bg-tertiary: #141412;
+        --text-primary: #f0ede8;
+        --text-secondary: #a0a09a;
+        --text-tertiary: #6b6b67;
+        --border-light: rgba(255,255,255,0.1);
+        --border-mid: rgba(255,255,255,0.2);
+        --blue-light: #0c2a4a;
+        --green-bg: #173404;
+        --green-text: #C0DD97;
+        --amber-bg: #412402;
+        --amber-text: #FAC775;
+        --red-bg: #501313;
+        --red-text: #F7C1C1;
+      }
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg-tertiary);
+      min-height: 100vh;
+      color: var(--text-primary);
+    }
+
+    .app { max-width: 480px; margin: 0 auto; padding: 1rem; }
+
+    .header { text-align: center; padding: 2rem 0 1.5rem; }
+    .header h1 { font-size: 22px; font-weight: 600; color: var(--text-primary); letter-spacing: -0.3px; }
+    .header p { font-size: 14px; color: var(--text-secondary); margin-top: 4px; }
+
+    .config-card {
+      background: var(--bg-primary);
+      border: 0.5px solid var(--border-light);
+      border-radius: var(--radius-lg);
+      padding: 1rem 1.25rem;
+      margin-bottom: 1.5rem;
+    }
+    .config-card label { font-size: 13px; color: var(--text-secondary); display: block; margin-bottom: 6px; }
+    .config-card input {
+      width: 100%; font-size: 13px; padding: 8px 10px;
+      border-radius: var(--radius-md);
+      border: 0.5px solid var(--border-mid);
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+    }
+    .config-card button {
+      margin-top: 10px; width: 100%; padding: 9px; font-size: 14px;
+      border-radius: var(--radius-md);
+      border: 0.5px solid var(--border-mid);
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+      cursor: pointer;
+    }
+    .config-card button:hover { background: var(--bg-tertiary); }
+    .url-set { font-size: 12px; color: var(--green-text); margin-top: 6px; display: none; }
+
+    .nav { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+    .nav-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 1.5rem; }
+    .nav-btn {
+      background: var(--bg-primary);
+      border: 0.5px solid var(--border-light);
+      border-radius: var(--radius-lg);
+      padding: 1rem 0.75rem;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.15s;
+    }
+    .nav-btn:hover { border-color: var(--border-mid); }
+    .nav-btn.active { border: 2px solid var(--blue); background: var(--blue-light); }
+    .nav-btn .nav-icon { font-size: 22px; color: var(--blue); margin-bottom: 6px; }
+    .nav-btn .nav-label { font-size: 12px; font-weight: 600; color: var(--text-primary); }
+    .nav-btn .nav-sub { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
+
+    .section { display: none; }
+    .section.active { display: block; }
+
+    .card {
+      background: var(--bg-primary);
+      border: 0.5px solid var(--border-light);
+      border-radius: var(--radius-lg);
+      padding: 1rem 1.25rem;
+      margin-bottom: 1rem;
+    }
+    .card h2 { font-size: 16px; font-weight: 600; color: var(--text-primary); margin-bottom: 1rem; }
+
+    .field { margin-bottom: 1rem; }
+    .field label { font-size: 13px; color: var(--text-secondary); display: block; margin-bottom: 5px; }
+    .field select, .field input {
+      width: 100%; padding: 9px 10px;
+      border-radius: var(--radius-md);
+      border: 0.5px solid var(--border-mid);
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+      font-size: 14px;
+    }
+
+    .submit-btn {
+      width: 100%; padding: 11px; font-size: 15px; font-weight: 600;
+      border-radius: var(--radius-md);
+      border: none;
+      background: var(--blue);
+      color: #fff;
+      cursor: pointer;
+      margin-top: 0.5rem;
+      transition: background 0.15s;
+    }
+    .submit-btn:hover { background: var(--blue-dark); }
+    .submit-btn:disabled { background: var(--bg-secondary); color: var(--text-tertiary); cursor: not-allowed; }
+
+    .inventory-item {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 10px 0;
+      border-bottom: 0.5px solid var(--border-light);
+    }
+    .inventory-item:last-child { border-bottom: none; }
+    .item-name { font-size: 14px; font-weight: 600; color: var(--text-primary); }
+    .item-meta { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+
+    .badge { display: inline-block; font-size: 11px; padding: 3px 8px; border-radius: var(--radius-md); font-weight: 600; }
+    .badge-available { background: var(--green-bg); color: var(--green-text); }
+    .badge-low { background: var(--amber-bg); color: var(--amber-text); }
+    .badge-none { background: var(--red-bg); color: var(--red-text); }
+
+    .borrow-record { padding: 10px 0; border-bottom: 0.5px solid var(--border-light); }
+    .borrow-record:last-child { border-bottom: none; }
+    .borrow-record .record-title { font-size: 14px; font-weight: 600; color: var(--text-primary); }
+    .borrow-record .record-meta { font-size: 12px; color: var(--text-secondary); margin-top: 3px; }
+
+    .section-hint { font-size: 13px; color: var(--text-secondary); margin-bottom: 1rem; line-height: 1.5; }
+    .loading { text-align: center; padding: 2rem; color: var(--text-secondary); font-size: 14px; }
+
+    .toast {
+      position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%);
+      background: #2C2C2A; color: #F1EFE8;
+      padding: 10px 20px; border-radius: var(--radius-md);
+      font-size: 14px; z-index: 999;
+      opacity: 0; transition: opacity 0.3s;
+      pointer-events: none; white-space: nowrap;
+    }
+    .toast.show { opacity: 1; }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <div class="header">
+    <h1><i class="ti ti-ball-football" style="font-size:20px; vertical-align:-2px; margin-right:6px; color:#185FA5;"></i>YAM Sports Equipment</h1>
+    <p>Young Adult Ministry — Equipment Manager</p>
+  </div>
+
+  <div class="config-card" id="config-section">
+    <label><i class="ti ti-settings" style="font-size:14px; vertical-align:-1px; margin-right:4px;"></i>Apps Script URL</label>
+    <input type="text" id="script-url" placeholder="https://script.google.com/macros/s/.../exec" />
+    <div class="url-set" id="url-set-msg"><i class="ti ti-check" style="font-size:13px; vertical-align:-1px; margin-right:3px;"></i>Connected to Google Sheet</div>
+    <button onclick="saveUrl()">Save & Connect</button>
+  </div>
+
+  <div class="nav">
+    <div class="nav-btn active" onclick="showSection('inventory', this)">
+      <div class="nav-icon"><i class="ti ti-clipboard-list"></i></div>
+      <div class="nav-label">Inventory</div>
+      <div class="nav-sub">View all items</div>
+    </div>
+    <div class="nav-btn" onclick="showSection('borrow', this)">
+      <div class="nav-icon"><i class="ti ti-arrow-up-right"></i></div>
+      <div class="nav-label">Borrow</div>
+      <div class="nav-sub">Take equipment</div>
+    </div>
+    <div class="nav-btn" onclick="showSection('return', this)">
+      <div class="nav-icon"><i class="ti ti-arrow-down-left"></i></div>
+      <div class="nav-label">Return</div>
+      <div class="nav-sub">Bring back</div>
+    </div>
+  </div>
+  <div class="nav-2">
+    <div class="nav-btn" onclick="showSection('book', this)">
+      <div class="nav-icon"><i class="ti ti-calendar-plus"></i></div>
+      <div class="nav-label">Book</div>
+      <div class="nav-sub">Reserve for event</div>
+    </div>
+    <div class="nav-btn" onclick="showSection('log', this)">
+      <div class="nav-icon"><i class="ti ti-history"></i></div>
+      <div class="nav-label">Active borrows</div>
+      <div class="nav-sub">Currently out</div>
+    </div>
+  </div>
+
+  <div id="inventory" class="section active">
+    <div class="card">
+      <h2><i class="ti ti-clipboard-list" style="font-size:16px; vertical-align:-2px; margin-right:6px; color:#185FA5;"></i>Equipment inventory</h2>
+      <div id="inventory-list"><div class="loading">Connect your Google Sheet above to load inventory.</div></div>
+    </div>
+  </div>
+
+  <div id="borrow" class="section">
+    <p class="section-hint">Only items with available stock are shown below.</p>
+    <div class="card">
+      <h2><i class="ti ti-arrow-up-right" style="font-size:16px; vertical-align:-2px; margin-right:6px; color:#185FA5;"></i>Borrow equipment</h2>
+      <div class="field">
+        <label>Item</label>
+        <select id="borrow-item"><option value="">— select item —</option></select>
+      </div>
+      <div class="field">
+        <label>Quantity</label>
+        <input type="number" id="borrow-qty" value="1" min="1" />
+      </div>
+      <div class="field">
+        <label>Your name</label>
+        <input type="text" id="borrow-name" placeholder="Full name" />
+      </div>
+      <button class="submit-btn" onclick="submitBorrow()">Confirm borrow</button>
+    </div>
+  </div>
+
+  <div id="return" class="section">
+    <p class="section-hint">Only items currently marked as active borrows are shown.</p>
+    <div class="card">
+      <h2><i class="ti ti-arrow-down-left" style="font-size:16px; vertical-align:-2px; margin-right:6px; color:#185FA5;"></i>Return equipment</h2>
+      <div class="field">
+        <label>Borrow record</label>
+        <select id="return-borrow"><option value="">— select record —</option></select>
+      </div>
+      <div class="field">
+        <label>Returned by</label>
+        <input type="text" id="return-name" placeholder="Full name" />
+      </div>
+      <div class="field">
+        <label>Comments (optional)</label>
+        <input type="text" id="return-comments" placeholder="e.g. one racket has damage" />
+      </div>
+      <button class="submit-btn" onclick="submitReturn()">Confirm return</button>
+    </div>
+  </div>
+
+  <div id="book" class="section">
+    <p class="section-hint">Reserve equipment ahead of time for an upcoming event.</p>
+    <div class="card">
+      <h2><i class="ti ti-calendar-plus" style="font-size:16px; vertical-align:-2px; margin-right:6px; color:#185FA5;"></i>Book for an event</h2>
+      <div class="field">
+        <label>Item</label>
+        <select id="book-item"><option value="">— select item —</option></select>
+      </div>
+      <div class="field">
+        <label>Quantity</label>
+        <input type="number" id="book-qty" value="1" min="1" />
+      </div>
+      <div class="field">
+        <label>Your name</label>
+        <input type="text" id="book-name" placeholder="Full name" />
+      </div>
+      <div class="field">
+        <label>Event date</label>
+        <input type="date" id="book-date" />
+      </div>
+      <button class="submit-btn" onclick="submitBook()">Confirm booking</button>
+    </div>
+  </div>
+
+  <div id="log" class="section">
+    <div class="card">
+      <h2><i class="ti ti-history" style="font-size:16px; vertical-align:-2px; margin-right:6px; color:#185FA5;"></i>Active borrows</h2>
+      <div id="log-list"><div class="loading">Connect your Google Sheet above to load records.</div></div>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  let SCRIPT_URL = localStorage.getItem('yam_script_url') || '';
+  let inventory = [];
+  let borrows = [];
+
+  function saveUrl() {
+    const val = document.getElementById('script-url').value.trim();
+    if (!val.startsWith('https://')) { showToast('Please enter a valid URL'); return; }
+    SCRIPT_URL = val;
+    localStorage.setItem('yam_script_url', val);
+    document.getElementById('url-set-msg').style.display = 'block';
+    showToast('Connected! Loading data...');
+    loadAll();
+  }
+
+  function init() {
+    if (SCRIPT_URL) {
+      document.getElementById('script-url').value = SCRIPT_URL;
+      document.getElementById('url-set-msg').style.display = 'block';
+      loadAll();
+    }
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('book-date').value = today;
+  }
+
+  function loadAll() {
+    loadInventory();
+    loadBorrows();
+  }
+
+  async function loadInventory() {
+    if (!SCRIPT_URL) return;
+    try {
+      const res = await fetch(SCRIPT_URL + '?action=getInventory');
+      inventory = await res.json();
+      renderInventory();
+      populateBorrowDropdown();
+      populateBookDropdown();
+    } catch(e) { showToast('Could not load inventory'); }
+  }
+
+  async function loadBorrows() {
+    if (!SCRIPT_URL) return;
+    try {
+      const res = await fetch(SCRIPT_URL + '?action=getBorrowedItems');
+      borrows = await res.json();
+      renderLog();
+      populateReturnDropdown();
+    } catch(e) { showToast('Could not load borrow records'); }
+  }
+
+  function renderInventory() {
+    const el = document.getElementById('inventory-list');
+    if (!inventory.length) { el.innerHTML = '<div class="loading">No items in inventory yet.</div>'; return; }
+    el.innerHTML = inventory.map(item => {
+      const avail = parseInt(item['Available Quantity']) || 0;
+      const total = parseInt(item['Total Quantity']) || 0;
+      let badgeClass = 'badge-available', badgeText = avail + ' available';
+      if (avail === 0) { badgeClass = 'badge-none'; badgeText = 'None available'; }
+      else if (avail <= Math.ceil(total * 0.3)) { badgeClass = 'badge-low'; badgeText = avail + ' left'; }
+      return `<div class="inventory-item">
+        <div>
+          <div class="item-name">${item['Item Name']}</div>
+          <div class="item-meta">${item['Category'] || ''} &nbsp;·&nbsp; Total: ${total}</div>
+        </div>
+        <span class="badge ${badgeClass}">${badgeText}</span>
+      </div>`;
+    }).join('');
+  }
+
+  function populateBorrowDropdown() {
+    const sel = document.getElementById('borrow-item');
+    const available = inventory.filter(i => parseInt(i['Available Quantity']) > 0);
+    sel.innerHTML = '<option value="">— select item —</option>' +
+      available.map(i => `<option value="${i['Item Name']}" data-max="${i['Available Quantity']}">${i['Item Name']} (${i['Available Quantity']} available)</option>`).join('');
+  }
+
+  function populateBookDropdown() {
+    const sel = document.getElementById('book-item');
+    sel.innerHTML = '<option value="">— select item —</option>' +
+      inventory.map(i => `<option value="${i['Item Name']}">${i['Item Name']}</option>`).join('');
+  }
+
+  function populateReturnDropdown() {
+    const sel = document.getElementById('return-borrow');
+    if (!borrows.length) {
+      sel.innerHTML = '<option value="">No active borrows found</option>';
+      return;
+    }
+    sel.innerHTML = '<option value="">— select record —</option>' +
+      borrows.map(b => `<option value="${b['Borrow ID']}|${b['Item Name']}|${b['Quantity']}">${b['Item Name']} × ${b['Quantity']} — ${b['Borrower Name']} (${b['Date Borrowed']})</option>`).join('');
+  }
+
+  function renderLog() {
+    const el = document.getElementById('log-list');
+    if (!borrows.length) { el.innerHTML = '<div class="loading">No active borrows at the moment.</div>'; return; }
+    el.innerHTML = borrows.map(b => `<div class="borrow-record">
+      <div class="record-title">${b['Item Name']} <span style="font-weight:400;">× ${b['Quantity']}</span></div>
+      <div class="record-meta">Borrowed by ${b['Borrower Name']} &nbsp;·&nbsp; ${b['Date Borrowed']}</div>
+    </div>`).join('');
+  }
+
+  async function submitBorrow() {
+    const item = document.getElementById('borrow-item').value;
+    const qty = parseInt(document.getElementById('borrow-qty').value);
+    const name = document.getElementById('borrow-name').value.trim();
+    if (!item || !name || !qty) { showToast('Please fill in all fields'); return; }
+    const opt = document.querySelector(`#borrow-item option[value="${item}"]`);
+    const max = parseInt(opt?.dataset.max || 999);
+    if (qty > max) { showToast(`Only ${max} available`); return; }
+    try {
+      await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'borrowItem', itemName: item, quantity: qty, borrowerName: name }) });
+      showToast('Borrow recorded successfully!');
+      document.getElementById('borrow-name').value = '';
+      document.getElementById('borrow-qty').value = '1';
+      document.getElementById('borrow-item').value = '';
+      loadAll();
+    } catch(e) { showToast('Error recording borrow'); }
+  }
+
+  async function submitReturn() {
+    const record = document.getElementById('return-borrow').value;
+    const name = document.getElementById('return-name').value.trim();
+    const comments = document.getElementById('return-comments').value.trim();
+    if (!record || !name) { showToast('Please fill in all fields'); return; }
+    const [borrowId, itemName, quantity] = record.split('|');
+    try {
+      await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'returnItem', borrowId, itemName, quantity: parseInt(quantity), returnedBy: name, comments }) });
+      showToast('Return recorded successfully!');
+      document.getElementById('return-name').value = '';
+      document.getElementById('return-comments').value = '';
+      document.getElementById('return-borrow').value = '';
+      loadAll();
+    } catch(e) { showToast('Error recording return'); }
+  }
+
+  async function submitBook() {
+    const item = document.getElementById('book-item').value;
+    const qty = parseInt(document.getElementById('book-qty').value);
+    const name = document.getElementById('book-name').value.trim();
+    const date = document.getElementById('book-date').value;
+    if (!item || !name || !qty || !date) { showToast('Please fill in all fields'); return; }
+    try {
+      await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'bookItem', itemName: item, quantity: qty, bookedBy: name, eventDate: date }) });
+      showToast('Booking confirmed!');
+      document.getElementById('book-name').value = '';
+      document.getElementById('book-qty').value = '1';
+      document.getElementById('book-item').value = '';
+      loadAll();
+    } catch(e) { showToast('Error recording booking'); }
+  }
+
+  function showSection(id, btn) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    if (btn) btn.classList.add('active');
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3000);
+  }
+
+  init();
+</script>
+</body>
+</html>
