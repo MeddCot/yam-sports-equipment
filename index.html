@@ -130,6 +130,9 @@
     .badge-available { background: var(--green-bg); color: var(--green-text); }
     .badge-low { background: var(--amber-bg); color: var(--amber-text); }
     .badge-none { background: var(--red-bg); color: var(--red-text); }
+    .badge-pending { background: var(--amber-bg); color: var(--amber-text); }
+    .badge-confirmed { background: var(--green-bg); color: var(--green-text); }
+    .badge-cancelled { background: var(--red-bg); color: var(--red-text); }
 
     .borrow-record { padding: 10px 0; border-bottom: 0.5px solid var(--border-light); }
     .borrow-record:last-child { border-bottom: none; }
@@ -138,6 +141,29 @@
 
     .section-hint { font-size: 13px; color: var(--text-secondary); margin-bottom: 1rem; line-height: 1.5; }
     .loading { text-align: center; padding: 2rem; color: var(--text-secondary); font-size: 14px; }
+
+    /* Collapsible toggle */
+    .toggle-header {
+      display: flex; justify-content: space-between; align-items: center;
+      cursor: pointer;
+      padding: 0.75rem 1.25rem;
+      background: var(--bg-secondary);
+      border: 0.5px solid var(--border-light);
+      border-radius: var(--radius-lg);
+      margin-bottom: 1rem;
+    }
+    .toggle-header:hover { background: var(--bg-tertiary); }
+    .toggle-title { font-size: 14px; font-weight: 600; color: var(--blue); }
+    .toggle-icon { font-size: 16px; color: var(--text-secondary); transition: transform 0.2s; }
+    .toggle-icon.open { transform: rotate(180deg); }
+    .toggle-body { display: none; margin-bottom: 1rem; }
+    .toggle-body.open { display: block; }
+
+    .booking-record { padding: 10px 0; border-bottom: 0.5px solid var(--border-light); }
+    .booking-record:last-child { border-bottom: none; }
+    .booking-record .record-title { font-size: 14px; font-weight: 600; color: var(--text-primary); }
+    .booking-record .record-meta { font-size: 12px; color: var(--text-secondary); margin-top: 3px; }
+    .booking-record .record-status { margin-top: 5px; }
 
     .toast {
       position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%);
@@ -240,7 +266,19 @@
   </div>
 
   <div id="book" class="section">
-    <p class="section-hint">Reserve equipment ahead of time for an upcoming event.</p>
+
+    <!-- Collapsible bookings list -->
+    <div class="toggle-header" onclick="toggleBookings(this)">
+      <span class="toggle-title"><i class="ti ti-calendar-event" style="font-size:14px; vertical-align:-1px; margin-right:6px;"></i>View current bookings</span>
+      <i class="ti ti-chevron-down toggle-icon"></i>
+    </div>
+    <div class="toggle-body" id="bookings-toggle-body">
+      <div class="card">
+        <div id="bookings-list"><div class="loading">Loading bookings...</div></div>
+      </div>
+    </div>
+
+    <p class="section-hint">Reserve equipment ahead of time for an upcoming event. Bookings are subject to availability and confirmation by the YAM team.</p>
     <div class="card">
       <h2><i class="ti ti-calendar-plus" style="font-size:16px; vertical-align:-2px; margin-right:6px; color:#185FA5;"></i>Book for an event</h2>
       <div class="field">
@@ -283,6 +321,7 @@
 
   let inventory = [];
   let borrows = [];
+  let bookings = [];
 
   function init() {
     const today = new Date().toISOString().split('T')[0];
@@ -293,6 +332,7 @@
   function loadAll() {
     loadInventory();
     loadBorrows();
+    loadBookings();
   }
 
   async function loadInventory() {
@@ -318,6 +358,16 @@
     }
   }
 
+  async function loadBookings() {
+    try {
+      const res = await fetch(SCRIPT_URL + '?action=getBookings');
+      bookings = await res.json();
+      renderBookings();
+    } catch(e) {
+      document.getElementById('bookings-list').innerHTML = '<div class="loading">Could not load bookings.</div>';
+    }
+  }
+
   function renderInventory() {
     const el = document.getElementById('inventory-list');
     if (!inventory.length) { el.innerHTML = '<div class="loading">No items in inventory yet.</div>'; return; }
@@ -333,6 +383,22 @@
           <div class="item-meta">${item['Category'] || ''} &nbsp;·&nbsp; Total: ${total}</div>
         </div>
         <span class="badge ${badgeClass}">${badgeText}</span>
+      </div>`;
+    }).join('');
+  }
+
+  function renderBookings() {
+    const el = document.getElementById('bookings-list');
+    if (!bookings.length) { el.innerHTML = '<div class="loading">No current bookings.</div>'; return; }
+    el.innerHTML = bookings.map(b => {
+      const status = b['Status'] || 'Pending';
+      let badgeClass = 'badge-pending';
+      if (status === 'Confirmed') badgeClass = 'badge-confirmed';
+      if (status === 'Cancelled') badgeClass = 'badge-cancelled';
+      return `<div class="booking-record">
+        <div class="record-title">${b['Item Name']} <span style="font-weight:400;">× ${b['Quantity']}</span></div>
+        <div class="record-meta">Booked by ${b['Booked By']} &nbsp;·&nbsp; Event: ${b['Event Date']}</div>
+        <div class="record-status"><span class="badge ${badgeClass}">${status}</span></div>
       </div>`;
     }).join('');
   }
@@ -369,75 +435,82 @@
     </div>`).join('');
   }
 
-async function submitBorrow() {
-  const btn = document.querySelector('#borrow .submit-btn');
-  const item = document.getElementById('borrow-item').value;
-  const qty = parseInt(document.getElementById('borrow-qty').value);
-  const name = document.getElementById('borrow-name').value.trim();
-  const contact = document.getElementById('borrow-contact').value.trim();
-  if (!item || !name || !qty || !contact) { showToast('Please fill in all required fields'); return; }
-  const opt = document.querySelector(`#borrow-item option[value="${item}"]`);
-  const max = parseInt(opt?.dataset.max || 0);
-  if (max <= 0) { showToast('This item is no longer available'); return; }
-  if (qty > max) { showToast(`Only ${max} available`); return; }
-  btn.disabled = true;
-  btn.textContent = 'Submitting...';
-  try {
-    await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'borrowItem', itemName: item, quantity: qty, borrowerName: name, contactNumber: contact }) });
-    showToast('Borrow recorded successfully!');
-    document.getElementById('borrow-name').value = '';
-    document.getElementById('borrow-contact').value = '';
-    document.getElementById('borrow-qty').value = '1';
-    document.getElementById('borrow-item').value = '';
-    loadAll();
-  } catch(e) { showToast('Error recording borrow'); }
-  btn.disabled = false;
-  btn.textContent = 'Confirm borrow';
-}
-  
+  function toggleBookings(header) {
+    const icon = header.querySelector('.toggle-icon');
+    const body = document.getElementById('bookings-toggle-body');
+    icon.classList.toggle('open');
+    body.classList.toggle('open');
+  }
+
+  async function submitBorrow() {
+    const btn = document.querySelector('#borrow .submit-btn');
+    const item = document.getElementById('borrow-item').value;
+    const qty = parseInt(document.getElementById('borrow-qty').value);
+    const name = document.getElementById('borrow-name').value.trim();
+    const contact = document.getElementById('borrow-contact').value.trim();
+    if (!item || !name || !qty || !contact) { showToast('Please fill in all required fields'); return; }
+    const opt = document.querySelector(`#borrow-item option[value="${item}"]`);
+    const max = parseInt(opt?.dataset.max || 0);
+    if (max <= 0) { showToast('This item is no longer available'); return; }
+    if (qty > max) { showToast(`Only ${max} available`); return; }
+    btn.disabled = true;
+    btn.textContent = 'Submitting...';
+    try {
+      await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'borrowItem', itemName: item, quantity: qty, borrowerName: name, contactNumber: contact }) });
+      showToast('Borrow recorded successfully!');
+      document.getElementById('borrow-name').value = '';
+      document.getElementById('borrow-contact').value = '';
+      document.getElementById('borrow-qty').value = '1';
+      document.getElementById('borrow-item').value = '';
+      loadAll();
+    } catch(e) { showToast('Error recording borrow'); }
+    btn.disabled = false;
+    btn.textContent = 'Confirm borrow';
+  }
+
   async function submitReturn() {
-  const btn = document.querySelector('#return .submit-btn');
-  const record = document.getElementById('return-borrow').value;
-  const name = document.getElementById('return-name').value.trim();
-  const comments = document.getElementById('return-comments').value.trim();
-  if (!record || !name) { showToast('Please fill in all required fields'); return; }
-  const [borrowId, itemName, quantity] = record.split('|');
-  btn.disabled = true;
-  btn.textContent = 'Submitting...';
-  try {
-    await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'returnItem', borrowId, itemName, quantity: parseInt(quantity), returnedBy: name, comments }) });
-    showToast('Return recorded successfully!');
-    document.getElementById('return-name').value = '';
-    document.getElementById('return-comments').value = '';
-    document.getElementById('return-borrow').value = '';
-    loadAll();
-  } catch(e) { showToast('Error recording return'); }
-  btn.disabled = false;
-  btn.textContent = 'Confirm return';
-}
+    const btn = document.querySelector('#return .submit-btn');
+    const record = document.getElementById('return-borrow').value;
+    const name = document.getElementById('return-name').value.trim();
+    const comments = document.getElementById('return-comments').value.trim();
+    if (!record || !name) { showToast('Please fill in all required fields'); return; }
+    const [borrowId, itemName, quantity] = record.split('|');
+    btn.disabled = true;
+    btn.textContent = 'Submitting...';
+    try {
+      await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'returnItem', borrowId, itemName, quantity: parseInt(quantity), returnedBy: name, comments }) });
+      showToast('Return recorded successfully!');
+      document.getElementById('return-name').value = '';
+      document.getElementById('return-comments').value = '';
+      document.getElementById('return-borrow').value = '';
+      loadAll();
+    } catch(e) { showToast('Error recording return'); }
+    btn.disabled = false;
+    btn.textContent = 'Confirm return';
+  }
 
   async function submitBook() {
-  const btn = document.querySelector('#book .submit-btn');
-  const item = document.getElementById('book-item').value;
-  const qty = parseInt(document.getElementById('book-qty').value);
-  const name = document.getElementById('book-name').value.trim();
-  const contact = document.getElementById('book-contact').value.trim();
-  const date = document.getElementById('book-date').value;
-  if (!item || !name || !qty || !contact || !date) { showToast('Please fill in all required fields'); return; }
-  btn.disabled = true;
-  btn.textContent = 'Submitting...';
-  try {
-    await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'bookItem', itemName: item, quantity: qty, bookedBy: name, contactNumber: contact, eventDate: date }) });
-    showToast('Booking confirmed!');
-    document.getElementById('book-name').value = '';
-    document.getElementById('book-contact').value = '';
-    document.getElementById('book-qty').value = '1';
-    document.getElementById('book-item').value = '';
-    loadAll();
-  } catch(e) { showToast('Error recording booking'); }
-  btn.disabled = false;
-  btn.textContent = 'Confirm booking';
-}
+    const btn = document.querySelector('#book .submit-btn');
+    const item = document.getElementById('book-item').value;
+    const qty = parseInt(document.getElementById('book-qty').value);
+    const name = document.getElementById('book-name').value.trim();
+    const contact = document.getElementById('book-contact').value.trim();
+    const date = document.getElementById('book-date').value;
+    if (!item || !name || !qty || !contact || !date) { showToast('Please fill in all required fields'); return; }
+    btn.disabled = true;
+    btn.textContent = 'Submitting...';
+    try {
+      await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'bookItem', itemName: item, quantity: qty, bookedBy: name, contactNumber: contact, eventDate: date }) });
+      showToast('Booking confirmed!');
+      document.getElementById('book-name').value = '';
+      document.getElementById('book-contact').value = '';
+      document.getElementById('book-qty').value = '1';
+      document.getElementById('book-item').value = '';
+      loadAll();
+    } catch(e) { showToast('Error recording booking'); }
+    btn.disabled = false;
+    btn.textContent = 'Confirm booking';
+  }
 
   function showSection(id, btn) {
     document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
