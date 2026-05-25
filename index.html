@@ -369,9 +369,16 @@
   }
 
   function renderInventory() {
-    const el = document.getElementById('inventory-list');
-    if (!inventory.length) { el.innerHTML = '<div class="loading">No items in inventory yet.</div>'; return; }
-    el.innerHTML = inventory.map(item => {
+  const el = document.getElementById('inventory-list');
+  if (!inventory.length) { el.innerHTML = '<div class="loading">No items in inventory yet.</div>'; return; }
+
+  const categories = ['Sports Equipment', 'Board Games', 'Others'];
+  
+  el.innerHTML = categories.map(cat => {
+    const items = inventory.filter(item => item['Category'] === cat);
+    if (!items.length) return '';
+    
+    const itemsHtml = items.map(item => {
       const avail = parseInt(item['Available Quantity']) || 0;
       const total = parseInt(item['Total Quantity']) || 0;
       let badgeClass = 'badge-available', badgeText = avail + ' available';
@@ -380,13 +387,24 @@
       return `<div class="inventory-item">
         <div>
           <div class="item-name">${item['Item Name']}</div>
-          <div class="item-meta">${item['Category'] || ''} &nbsp;·&nbsp; Total: ${total}</div>
+          <div class="item-meta">Total: ${total}</div>
         </div>
         <span class="badge ${badgeClass}">${badgeText}</span>
       </div>`;
     }).join('');
-  }
 
+    return `
+      <div class="toggle-header" onclick="toggleCategory(this)" style="margin-bottom:0.5rem;">
+        <span class="toggle-title"><i class="ti ti-tag" style="font-size:14px; vertical-align:-1px; margin-right:6px;"></i>${cat}</span>
+        <i class="ti ti-chevron-down toggle-icon"></i>
+      </div>
+      <div class="toggle-body open" style="margin-bottom:0.75rem;">
+        <div class="card" style="margin-bottom:0;">
+          ${itemsHtml}
+        </div>
+      </div>`;
+  }).join('');
+}
   function renderBookings() {
     const el = document.getElementById('bookings-list');
     if (!bookings.length) { el.innerHTML = '<div class="loading">No current bookings.</div>'; return; }
@@ -441,7 +459,13 @@
     icon.classList.toggle('open');
     body.classList.toggle('open');
   }
-
+function toggleCategory(header) {
+  const icon = header.querySelector('.toggle-icon');
+  const body = header.nextElementSibling;
+  icon.classList.toggle('open');
+  body.classList.toggle('open');
+}
+  
   async function submitBorrow() {
   const btn = document.querySelector('#borrow .submit-btn');
   const item = document.getElementById('borrow-item').value;
