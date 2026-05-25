@@ -390,16 +390,16 @@
         </div>`;
       }).join('');
 
-      return `
-        <div class="toggle-header" onclick="toggleCategory(this)">
-          <span class="toggle-title"><i class="ti ti-tag" style="font-size:14px; vertical-align:-1px; margin-right:6px;"></i>${cat}</span>
-          <i class="ti ti-chevron-down toggle-icon open"></i>
-        </div>
-        <div class="toggle-body open">
-          <div class="card" style="margin-bottom:0;">
-            ${itemsHtml}
-          </div>
-        </div>`;
+return `
+  <div class="toggle-header" onclick="toggleCategory(this)">
+    <span class="toggle-title"><i class="ti ti-tag" style="font-size:14px; vertical-align:-1px; margin-right:6px;"></i>${cat}</span>
+    <i class="ti ti-chevron-down toggle-icon"></i>
+  </div>
+  <div class="toggle-body">
+    <div class="card" style="margin-bottom:0;">
+      ${itemsHtml}
+    </div>
+  </div>`;
     }).join('');
   }
 
