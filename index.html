@@ -528,7 +528,7 @@
     btn.textContent = 'Submitting...';
     try {
       await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'bookItem', itemName: item, quantity: qty, bookedBy: name, contactNumber: contact, eventDate: date }) });
-      showToast('Booking confirmed!');
+      showToast('Booking Request Submitted!');
       document.getElementById('book-name').value = '';
       document.getElementById('book-contact').value = '';
       document.getElementById('book-qty').value = '1';
