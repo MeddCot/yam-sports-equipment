@@ -142,7 +142,6 @@
     .section-hint { font-size: 13px; color: var(--text-secondary); margin-bottom: 1rem; line-height: 1.5; }
     .loading { text-align: center; padding: 2rem; color: var(--text-secondary); font-size: 14px; }
 
-    /* Collapsible toggle */
     .toggle-header {
       display: flex; justify-content: space-between; align-items: center;
       cursor: pointer;
@@ -150,13 +149,13 @@
       background: var(--bg-secondary);
       border: 0.5px solid var(--border-light);
       border-radius: var(--radius-lg);
-      margin-bottom: 1rem;
+      margin-bottom: 0.5rem;
     }
     .toggle-header:hover { background: var(--bg-tertiary); }
     .toggle-title { font-size: 14px; font-weight: 600; color: var(--blue); }
     .toggle-icon { font-size: 16px; color: var(--text-secondary); transition: transform 0.2s; }
     .toggle-icon.open { transform: rotate(180deg); }
-    .toggle-body { display: none; margin-bottom: 1rem; }
+    .toggle-body { display: none; margin-bottom: 0.75rem; }
     .toggle-body.open { display: block; }
 
     .booking-record { padding: 10px 0; border-bottom: 0.5px solid var(--border-light); }
@@ -266,8 +265,6 @@
   </div>
 
   <div id="book" class="section">
-
-    <!-- Collapsible bookings list -->
     <div class="toggle-header" onclick="toggleBookings(this)">
       <span class="toggle-title"><i class="ti ti-calendar-event" style="font-size:14px; vertical-align:-1px; margin-right:6px;"></i>View current bookings</span>
       <i class="ti ti-chevron-down toggle-icon"></i>
@@ -295,7 +292,7 @@
       </div>
       <div class="field">
         <label>Contact number <span class="required">*</span></label>
-     <input type="tel" id="book-contact" placeholder="e.g. +4917612345678" pattern="\+[0-9]{9,14}" title="Enter country code followed by number, no spaces or dashes. E.g. +4917612345678" />
+        <input type="tel" id="book-contact" placeholder="e.g. +4917612345678" pattern="\+[0-9]{9,14}" title="Enter country code followed by number, no spaces or dashes. E.g. +4917612345678" />
       </div>
       <div class="field">
         <label>Event date <span class="required">*</span></label>
@@ -318,6 +315,8 @@
 
 <script>
   const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxDcjFsaio2snIaMUXeIkYy5u52KqbkgtqAh9R0dSp-85Dr232Ax4BykxGWH1jdNMD-kA/exec';
+
+  const CATEGORY_ORDER = ['Sports Equipment', 'Board Games', 'Others'];
 
   let inventory = [];
   let borrows = [];
@@ -372,20 +371,10 @@
     const el = document.getElementById('inventory-list');
     if (!inventory.length) { el.innerHTML = '<div class="loading">No items in inventory yet.</div>'; return; }
 
-    const categoryOrder = ['Sports Equipment', 'Board Games', 'Others'];
-    const categories = [...new Set(inventory.map(item => item['Category']))].sort((a, b) => {
-      let idxA = categoryOrder.indexOf(a);
-      let idxB = categoryOrder.indexOf(b);
-      if (idxA === -1) idxA = 99;
-      if (idxB === -1) idxB = 99;
-      if (idxA !== idxB) return idxA - idxB;
-      return a.localeCompare(b);
-    });
-    
-    el.innerHTML = categories.map(cat => {
+    el.innerHTML = CATEGORY_ORDER.map(cat => {
       const items = inventory.filter(item => item['Category'] === cat);
       if (!items.length) return '';
-      
+
       const itemsHtml = items.map(item => {
         const avail = parseInt(item['Available Quantity']) || 0;
         const total = parseInt(item['Total Quantity']) || 0;
@@ -402,17 +391,18 @@
       }).join('');
 
       return `
-        <div class="toggle-header" onclick="toggleCategory(this)" style="margin-bottom:0.5rem;">
-          <span class="toggle-title"><i class="ti ti-tag" style="font-size:14px; vertical-align:-1px; margin-right:6px;"></i>${cat || 'Uncategorized'}</span>
-          <i class="ti ti-chevron-down toggle-icon"></i>
+        <div class="toggle-header" onclick="toggleCategory(this)">
+          <span class="toggle-title"><i class="ti ti-tag" style="font-size:14px; vertical-align:-1px; margin-right:6px;"></i>${cat}</span>
+          <i class="ti ti-chevron-down toggle-icon open"></i>
         </div>
-        <div class="toggle-body" style="margin-bottom:0.75rem;">
+        <div class="toggle-body open">
           <div class="card" style="margin-bottom:0;">
             ${itemsHtml}
           </div>
         </div>`;
     }).join('');
   }
+
   function renderBookings() {
     const el = document.getElementById('bookings-list');
     if (!bookings.length) { el.innerHTML = '<div class="loading">No current bookings.</div>'; return; }
@@ -467,41 +457,42 @@
     icon.classList.toggle('open');
     body.classList.toggle('open');
   }
-function toggleCategory(header) {
-  const icon = header.querySelector('.toggle-icon');
-  const body = header.nextElementSibling;
-  icon.classList.toggle('open');
-  body.classList.toggle('open');
-}
-  
+
+  function toggleCategory(header) {
+    const icon = header.querySelector('.toggle-icon');
+    const body = header.nextElementSibling;
+    icon.classList.toggle('open');
+    body.classList.toggle('open');
+  }
+
   async function submitBorrow() {
-  const btn = document.querySelector('#borrow .submit-btn');
-  const item = document.getElementById('borrow-item').value;
-  const qty = parseInt(document.getElementById('borrow-qty').value);
-  const name = document.getElementById('borrow-name').value.trim();
-  const contact = document.getElementById('borrow-contact').value.trim();
-  if (!item || !name || !qty || !contact) { showToast('Please fill in all required fields'); return; }
-  const phoneRegex = /^\+[0-9]{9,14}$/;
-  if (!phoneRegex.test(contact)) { showToast('Enter number with country code, no spaces. E.g. +4917612345678'); return; }
-  const opt = document.querySelector(`#borrow-item option[value="${item}"]`);
-  const max = parseInt(opt?.dataset.max || 0);
-  if (max <= 0) { showToast('This item is no longer available'); return; }
-  if (qty > max) { showToast(`Only ${max} available`); return; }
-  btn.disabled = true;
-  btn.textContent = 'Submitting...';
-  try {
-    await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'borrowItem', itemName: item, quantity: qty, borrowerName: name, contactNumber: contact }) });
-    showToast('Borrow recorded successfully!');
-    document.getElementById('borrow-name').value = '';
-    document.getElementById('borrow-contact').value = '';
-    document.getElementById('borrow-qty').value = '1';
-    document.getElementById('borrow-item').value = '';
-    loadAll();
-  } catch(e) { showToast('Error recording borrow'); }
-  btn.disabled = false;
-  btn.textContent = 'Confirm borrow';
-}
-  
+    const btn = document.querySelector('#borrow .submit-btn');
+    const item = document.getElementById('borrow-item').value;
+    const qty = parseInt(document.getElementById('borrow-qty').value);
+    const name = document.getElementById('borrow-name').value.trim();
+    const contact = document.getElementById('borrow-contact').value.trim();
+    if (!item || !name || !qty || !contact) { showToast('Please fill in all required fields'); return; }
+    const phoneRegex = /^\+[0-9]{9,14}$/;
+    if (!phoneRegex.test(contact)) { showToast('Enter number with country code, no spaces. E.g. +4917612345678'); return; }
+    const opt = document.querySelector(`#borrow-item option[value="${item}"]`);
+    const max = parseInt(opt?.dataset.max || 0);
+    if (max <= 0) { showToast('This item is no longer available'); return; }
+    if (qty > max) { showToast(`Only ${max} available`); return; }
+    btn.disabled = true;
+    btn.textContent = 'Submitting...';
+    try {
+      await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'borrowItem', itemName: item, quantity: qty, borrowerName: name, contactNumber: contact }) });
+      showToast('Borrow recorded successfully!');
+      document.getElementById('borrow-name').value = '';
+      document.getElementById('borrow-contact').value = '';
+      document.getElementById('borrow-qty').value = '1';
+      document.getElementById('borrow-item').value = '';
+      loadAll();
+    } catch(e) { showToast('Error recording borrow'); }
+    btn.disabled = false;
+    btn.textContent = 'Confirm borrow';
+  }
+
   async function submitReturn() {
     const btn = document.querySelector('#return .submit-btn');
     const record = document.getElementById('return-borrow').value;
@@ -524,30 +515,30 @@ function toggleCategory(header) {
   }
 
   async function submitBook() {
-  const btn = document.querySelector('#book .submit-btn');
-  const item = document.getElementById('book-item').value;
-  const qty = parseInt(document.getElementById('book-qty').value);
-  const name = document.getElementById('book-name').value.trim();
-  const contact = document.getElementById('book-contact').value.trim();
-  const date = document.getElementById('book-date').value;
-  if (!item || !name || !qty || !contact || !date) { showToast('Please fill in all required fields'); return; }
-  const phoneRegex = /^\+[0-9]{9,14}$/;
-  if (!phoneRegex.test(contact)) { showToast('Enter number with country code, no spaces. E.g. +4917612345678'); return; }
-  btn.disabled = true;
-  btn.textContent = 'Submitting...';
-  try {
-    await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'bookItem', itemName: item, quantity: qty, bookedBy: name, contactNumber: contact, eventDate: date }) });
-    showToast('Booking confirmed!');
-    document.getElementById('book-name').value = '';
-    document.getElementById('book-contact').value = '';
-    document.getElementById('book-qty').value = '1';
-    document.getElementById('book-item').value = '';
-    loadAll();
-  } catch(e) { showToast('Error recording booking'); }
-  btn.disabled = false;
-  btn.textContent = 'Confirm booking';
-}
-  
+    const btn = document.querySelector('#book .submit-btn');
+    const item = document.getElementById('book-item').value;
+    const qty = parseInt(document.getElementById('book-qty').value);
+    const name = document.getElementById('book-name').value.trim();
+    const contact = document.getElementById('book-contact').value.trim();
+    const date = document.getElementById('book-date').value;
+    if (!item || !name || !qty || !contact || !date) { showToast('Please fill in all required fields'); return; }
+    const phoneRegex = /^\+[0-9]{9,14}$/;
+    if (!phoneRegex.test(contact)) { showToast('Enter number with country code, no spaces. E.g. +4917612345678'); return; }
+    btn.disabled = true;
+    btn.textContent = 'Submitting...';
+    try {
+      await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'bookItem', itemName: item, quantity: qty, bookedBy: name, contactNumber: contact, eventDate: date }) });
+      showToast('Booking confirmed!');
+      document.getElementById('book-name').value = '';
+      document.getElementById('book-contact').value = '';
+      document.getElementById('book-qty').value = '1';
+      document.getElementById('book-item').value = '';
+      loadAll();
+    } catch(e) { showToast('Error recording booking'); }
+    btn.disabled = false;
+    btn.textContent = 'Confirm booking';
+  }
+
   function showSection(id, btn) {
     document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
     document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
