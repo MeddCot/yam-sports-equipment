@@ -298,7 +298,7 @@
         <label>Event date <span class="required">*</span></label>
         <input type="date" id="book-date" />
       </div>
-      <button class="submit-btn" onclick="submitBook()">Confirm booking</button>
+      <button class="submit-btn" onclick="submitBook()">Request Booking</button>
     </div>
   </div>
 
@@ -536,7 +536,7 @@
       loadAll();
     } catch(e) { showToast('Error recording booking'); }
     btn.disabled = false;
-    btn.textContent = 'Confirm booking';
+    btn.textContent = 'Request booking';
   }
 
   function showSection(id, btn) {
