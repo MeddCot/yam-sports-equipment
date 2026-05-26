@@ -380,7 +380,7 @@
         const total = parseInt(item['Total Quantity']) || 0;
         let badgeClass = 'badge-available', badgeText = avail + ' available';
         if (avail === 0) { badgeClass = 'badge-none'; badgeText = 'None available'; }
-        else if (avail <= Math.ceil(total * 0.3)) { badgeClass = 'badge-low'; badgeText = avail + ' left'; }
+        else if (total > 1 && avail <= Math.ceil(total * 0.3)) { badgeClass = 'badge-low'; badgeText = avail + ' left'; }
         return `<div class="inventory-item">
           <div>
             <div class="item-name">${item['Item Name']}</div>
