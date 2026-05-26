@@ -240,7 +240,7 @@
         <label>Contact number <span class="required">*</span></label>
         <input type="tel" id="borrow-contact" placeholder="e.g. +4917612345678" pattern="\+[0-9]{9,14}" title="Enter country code followed by number, no spaces or dashes. E.g. +4917612345678" />
       </div>
-      <button class="submit-btn" onclick="submitBorrow()">Confirm borrow</button>
+      <button class="submit-btn" onclick="submitBorrow()">Confirm Borrow</button>
     </div>
   </div>
 
@@ -260,7 +260,7 @@
         <label>Comments (optional)</label>
         <input type="text" id="return-comments" placeholder="e.g. one racket has damage" />
       </div>
-      <button class="submit-btn" onclick="submitReturn()">Confirm return</button>
+      <button class="submit-btn" onclick="submitReturn()">Confirm Return</button>
     </div>
   </div>
 
@@ -490,7 +490,7 @@ return `
       loadAll();
     } catch(e) { showToast('Error recording borrow'); }
     btn.disabled = false;
-    btn.textContent = 'Confirm borrow';
+    btn.textContent = 'Confirm Borrow';
   }
 
   async function submitReturn() {
@@ -511,7 +511,7 @@ return `
       loadAll();
     } catch(e) { showToast('Error recording return'); }
     btn.disabled = false;
-    btn.textContent = 'Confirm return';
+    btn.textContent = 'Confirm Return';
   }
 
   async function submitBook() {
